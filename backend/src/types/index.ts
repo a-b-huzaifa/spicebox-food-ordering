@@ -21,6 +21,10 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export const PAYMENT_STATUSES = ['unpaid', 'pending', 'paid', 'failed', 'refunded'] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
+export const RESTAURANT_STATUSES = ['pending', 'approved', 'rejected'] as const;
+export type RestaurantStatus = (typeof RESTAURANT_STATUSES)[number];
+
+
 // ---- API contract -------------------------------------------------------
 // Every endpoint answers with ApiResponse<T>. Clients can narrow on
 // `success` and get fully typed data or a typed error.
@@ -74,4 +78,35 @@ export interface PublicUser {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---- Restaurant DTO ---------------------------------------------------------
+
+export interface RestaurantEtaMinutes {
+  min: number;
+  max: number;
+}
+
+export interface RestaurantDTO {
+  id: string;
+  _id?: string;
+  owner: string;
+  name: string;
+  slug: string;
+  description: string;
+  cuisine: string;
+  categories: string[];
+  image: string;
+  address: string;
+  phone: string;
+  deliveryFee: number;
+  minOrder: number;
+  etaMinutes: RestaurantEtaMinutes;
+  isOpen: boolean;
+  status: RestaurantStatus;
+  ratingAverage: number;
+  ratingCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
