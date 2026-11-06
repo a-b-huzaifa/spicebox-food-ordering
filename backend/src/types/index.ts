@@ -49,3 +49,29 @@ export interface Paginated<T> {
   total: number;
   totalPages: number;
 }
+
+// ---- User & Address DTOs ----------------------------------------------------
+
+export interface UserAddress {
+  id: string;
+  _id?: string;
+  label: string;
+  line1: string;
+  city: string;
+  notes?: string;
+  isDefault: boolean;
+}
+
+export interface PublicUser {
+  id: string;
+  _id?: string;
+  name: string;
+  email: string;
+  role: Role;
+  phone?: string;
+  isActive: boolean;
+  addresses: UserAddress[];
+  createdAt: string;
+  updatedAt: string;
+}
+
