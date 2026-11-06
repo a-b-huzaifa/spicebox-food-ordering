@@ -8,6 +8,7 @@ import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
 import restaurantRoutes from './routes/restaurants';
 import menuItemRoutes from './routes/menuItems';
+import userRoutes from './routes/users';
 import { ok } from './utils/respond';
 
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/menu-items', menuItemRoutes);
+app.use('/api/users', userRoutes);
 
 // Later stages mount: /api/orders, /api/payments, /api/reviews, /api/admin ...
 
