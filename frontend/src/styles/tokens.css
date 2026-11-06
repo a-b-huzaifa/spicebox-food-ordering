@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Spicebox design tokens: Neo-brutalism x Neumorphism
+
+   The blend, in one rule:
+     - SURFACES you read / press / type into  -> neumorphic (soft, extruded or inset)
+     - STRUCTURE and CALLS TO ACTION          -> neo-brutalist (thick border, hard offset shadow)
+   Pressing a brutalist button "sinks" it into a neumorphic inset, so the
+   two languages meet in the interaction itself.
+   ========================================================================== */
+:root {
+  /* Brand */
+  --orange: #ff5a1f;
+  --orange-deep: #e8480c;
+  --red: #e63b2e;
+  --charcoal: #1e1e22;
+  --charcoal-2: #2b2b31;
+  --white: #ffffff;
+
+  /* Semantic (light) */
+  --bg: #ecebe9;
+  --surface: #ffffff;
+  --text: #1e1e22;
+  --text-soft: #5a5a63;
+  --border-color: #1e1e22;
+  --hard: #1e1e22;
+  --neo-light: #ffffff;
+  --neo-dark: #c9c7c4;
+
+  --border-w: 3px;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  /* Elevation system */
+  --shadow-hard: 6px 6px 0 var(--hard);
+  --shadow-hard-sm: 4px 4px 0 var(--hard);
+  --shadow-neo: 9px 9px 18px var(--neo-dark), -9px -9px 18px var(--neo-light);
+  --shadow-neo-sm: 5px 5px 10px var(--neo-dark), -5px -5px 10px var(--neo-light);
+  --shadow-inset: inset 5px 5px 10px var(--neo-dark), inset -5px -5px 10px var(--neo-light);
+
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-theme='dark'] {
+  --bg: #222226;
+  --surface: #2d2d33;
+  --text: #f5f3f0;
+  --text-soft: #b4b2ae;
+  --border-color: #f5f3f0;
+  --hard: #0c0c0e;
+  --neo-light: #2f2f36;
+  --neo-dark: #151518;
+}
