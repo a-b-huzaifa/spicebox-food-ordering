@@ -24,7 +24,6 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export const RESTAURANT_STATUSES = ['pending', 'approved', 'rejected'] as const;
 export type RestaurantStatus = (typeof RESTAURANT_STATUSES)[number];
 
-
 // ---- API contract -------------------------------------------------------
 // Every endpoint answers with ApiResponse<T>. Clients can narrow on
 // `success` and get fully typed data or a typed error.
@@ -173,6 +172,28 @@ export interface OrderDTO {
   updatedAt: string;
 }
 
+// ---- Payment DTO ------------------------------------------------------------
 
+export interface PaymentDTO {
+  id: string;
+  _id?: string;
+  order: string;
+  method: PaymentMethod;
+  amount: number;
+  status: PaymentStatus;
+  provider: string;
+  providerRef?: string;
+  paidAt?: string;
+  failureReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-
+export interface PaymentMethodOption {
+  id: PaymentMethod;
+  title: string;
+  description: string;
+  available: boolean;
+  isSimulated: boolean;
+  badge?: string;
+}

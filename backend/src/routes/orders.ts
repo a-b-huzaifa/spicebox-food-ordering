@@ -18,7 +18,9 @@ import { type AuthRequest, authorize, protect } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { MenuItem } from '../models/MenuItem';
 import { Order, type IOrderItem, type OrderDocument } from '../models/Order';
+import { Payment } from '../models/Payment';
 import { Restaurant } from '../models/Restaurant';
+import { paymentRegistry } from '../services/payments/registry';
 import type { OrderDTO, OrderStatus, Paginated } from '../types';
 import { AppError } from '../utils/AppError';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -150,6 +152,15 @@ router.post(
       ],
     });
 
+    // Automatically create the Payment record for the newly placed order
+    await Payment.create({
+      order: order._id,
+      method: order.paymentMethod,
+      amount: order.total,
+      status: 'unpaid',
+      provider: order.paymentMethod,
+    });
+
     return ok<OrderDTO>(res, order.toDTO(), 201, 'Order placed successfully');
   }),
 );
@@ -277,6 +288,15 @@ router.patch(
       at: new Date(),
       by: req.user._id,
     });
+
+    // COD settlement rule: payment stays 'unpaid' until order is marked 'delivered'
+    if (targetStatus === 'delivered' && order.paymentMethod === 'cod') {
+      const payment = await Payment.findOne({ order: order._id });
+      if (payment && payment.status !== 'paid') {
+        await paymentRegistry.cod.confirm(payment);
+      }
+      order.paymentStatus = 'paid';
+    }
 
     await order.save();
 
