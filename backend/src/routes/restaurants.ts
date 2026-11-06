@@ -1,14 +1,16 @@
 /**
  * Authorization Matrix for /api/restaurants:
  * ---------------------------------------------------------------------------------------------
- * Route                         Method   Auth Required   Roles Allowed    Success Status / Desc
+ * Route                              Method   Auth Required   Roles Allowed    Success Status / Desc
  * ---------------------------------------------------------------------------------------------
- * /api/restaurants              GET      No              Public           200 (approved only)
- * /api/restaurants/:idOrSlug    GET      Optional        Public / Owner   200 (approved, or own/admin)
- * /api/restaurants              POST     Yes             owner, admin     201 (created as pending)
- * /api/restaurants/:id          PATCH    Yes             owner (self), ad 200 (edit own)
- * /api/restaurants/:id          DELETE   Yes             owner (self), ad 200 (delete own)
- * /api/restaurants/:id/status   PATCH    Yes             admin only       200 (approve/reject)
+ * /api/restaurants                   GET      No              Public           200 (approved only)
+ * /api/restaurants/:idOrSlug         GET      Optional        Public / Owner   200 (approved, or own/admin)
+ * /api/restaurants/:id/menu          GET      No              Public           200 (grouped by section)
+ * /api/restaurants                   POST     Yes             owner, admin     201 (created as pending)
+ * /api/restaurants/:id/menu-items    POST     Yes             owner (self), ad 201 (create menu item)
+ * /api/restaurants/:id               PATCH    Yes             owner (self), ad 200 (edit own)
+ * /api/restaurants/:id               DELETE   Yes             owner (self), ad 200 (delete own + cascade)
+ * /api/restaurants/:id/status        PATCH    Yes             admin only       200 (approve/reject)
  * ---------------------------------------------------------------------------------------------
  */
 
@@ -18,14 +20,19 @@ import mongoose from 'mongoose';
 import { env } from '../config/env';
 import { type AuthRequest, authorize, protect } from '../middleware/auth';
 import { validate } from '../middleware/validate';
+import { MenuItem } from '../models/MenuItem';
 import { Restaurant, type RestaurantDocument, slugify } from '../models/Restaurant';
 import { User, type UserDocument } from '../models/User';
-import type { Paginated, RestaurantDTO } from '../types';
+import type { MenuItemDTO, MenuSection, Paginated, RestaurantDTO } from '../types';
 import { AppError } from '../utils/AppError';
 import { asyncHandler } from '../utils/asyncHandler';
 import { verifyOwnership } from '../utils/ownership';
 import { paginate } from '../utils/paginate';
 import { ok } from '../utils/respond';
+import {
+  type CreateMenuItemInput,
+  createMenuItemSchema,
+} from '../validators/menuItem';
 import {
   type CreateRestaurantInput,
   type RestaurantQueryInput,
@@ -167,6 +174,94 @@ router.get(
 );
 
 /**
+ * GET /api/restaurants/:id/menu
+ * Public endpoint: returns all menu items for a restaurant grouped by section.
+ */
+router.get(
+  '/:id/menu',
+  asyncHandler(async (req: Request, res: Response) => {
+    const param = req.params.id;
+    const idOrSlug = Array.isArray(param) ? param[0] : param;
+    if (!idOrSlug) {
+      throw AppError.badRequest('Restaurant identifier is required');
+    }
+
+    const isObjectId = mongoose.Types.ObjectId.isValid(idOrSlug);
+    const restaurant = await Restaurant.findOne(
+      isObjectId ? { $or: [{ _id: idOrSlug }, { slug: idOrSlug }] } : { slug: idOrSlug },
+    );
+
+    if (!restaurant) {
+      throw AppError.notFound('Restaurant not found');
+    }
+
+    const items = await MenuItem.find({ restaurant: restaurant._id }).sort({
+      section: 1,
+      createdAt: 1,
+    });
+
+    const sectionMap = new Map<string, MenuItemDTO[]>();
+    for (const item of items) {
+      const dto = item.toDTO();
+      const existing = sectionMap.get(item.section) ?? [];
+      existing.push(dto);
+      sectionMap.set(item.section, existing);
+    }
+
+    const sections: MenuSection[] = Array.from(sectionMap.entries()).map(([section, sectionItems]) => ({
+      section,
+      items: sectionItems,
+    }));
+
+    return ok<MenuSection[]>(res, sections);
+  }),
+);
+
+/**
+ * POST /api/restaurants/:id/menu-items
+ * Owner of that restaurant or admin adds a new menu item.
+ */
+router.post(
+  '/:id/menu-items',
+  protect,
+  authorize('owner', 'admin'),
+  validate(createMenuItemSchema),
+  asyncHandler<AuthRequest>(async (req: AuthRequest, res: Response) => {
+    const param = req.params.id;
+    const id = Array.isArray(param) ? param[0] : param;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      throw AppError.badRequest('Invalid restaurant ID');
+    }
+
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      throw AppError.notFound('Restaurant not found');
+    }
+
+    // Must be that restaurant's owner or admin
+    verifyOwnership(
+      req.user,
+      restaurant.owner,
+      'You do not have permission to add menu items to this restaurant',
+    );
+
+    const data = req.body as CreateMenuItemInput;
+    const menuItem = await MenuItem.create({
+      ...data,
+      restaurant: restaurant._id,
+    });
+
+    return ok<MenuItemDTO>(
+      res,
+      menuItem.toDTO(),
+      201,
+      'Menu item created successfully',
+    );
+  }),
+);
+
+
+/**
  * POST /api/restaurants
  * Owner/Admin creates a new restaurant (always created with status "pending").
  */
@@ -282,6 +377,8 @@ router.delete(
 
     verifyOwnership(req.user, restaurant.owner, 'You do not have permission to delete this restaurant');
 
+    // Cascade delete: remove all associated menu items
+    await MenuItem.deleteMany({ restaurant: restaurant._id });
     await restaurant.deleteOne();
 
     return ok<{ id: string }>(

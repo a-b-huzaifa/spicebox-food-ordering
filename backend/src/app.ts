@@ -7,6 +7,7 @@ import { notFound } from './middleware/notFound';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
 import restaurantRoutes from './routes/restaurants';
+import menuItemRoutes from './routes/menuItems';
 import { ok } from './utils/respond';
 
 const app = express();
@@ -22,9 +23,9 @@ app.get('/', (_req, res) => {
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/menu-items', menuItemRoutes);
 
-// Later stages mount: /api/menu-items,
-// /api/orders, /api/payments, /api/reviews, /api/admin ...
+// Later stages mount: /api/orders, /api/payments, /api/reviews, /api/admin ...
 
 app.use(notFound);
 app.use(errorHandler);

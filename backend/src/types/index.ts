@@ -109,4 +109,28 @@ export interface RestaurantDTO {
   updatedAt: string;
 }
 
+// ---- Menu Item DTO ----------------------------------------------------------
+
+export interface MenuItemDTO {
+  id: string;
+  _id?: string;
+  restaurant: string;
+  name: string;
+  description: string;
+  price: number; // integer rupees
+  image: string;
+  section: string;
+  isAvailable: boolean;
+  isVeg: boolean;
+  prepTimeMinutes?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MenuSection {
+  section: string;
+  items: MenuItemDTO[];
+}
+
+
 
