@@ -9,6 +9,7 @@ import authRoutes from './routes/auth';
 import restaurantRoutes from './routes/restaurants';
 import menuItemRoutes from './routes/menuItems';
 import userRoutes from './routes/users';
+import orderRoutes from './routes/orders';
 import { ok } from './utils/respond';
 
 const app = express();
@@ -26,8 +27,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/menu-items', menuItemRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
 
-// Later stages mount: /api/orders, /api/payments, /api/reviews, /api/admin ...
+// Later stages mount: /api/payments, /api/reviews, /api/admin ...
 
 app.use(notFound);
 app.use(errorHandler);

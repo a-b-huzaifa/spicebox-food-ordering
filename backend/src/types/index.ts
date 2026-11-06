@@ -132,5 +132,47 @@ export interface MenuSection {
   items: MenuItemDTO[];
 }
 
+// ---- Order DTO --------------------------------------------------------------
+
+export interface OrderItemSnapshot {
+  menuItem: string;
+  name: string;
+  price: number; // integer rupees at purchase time
+  quantity: number;
+}
+
+export interface DeliveryAddressSnapshot {
+  label: string;
+  line1: string;
+  city: string;
+  notes?: string;
+}
+
+export interface StatusHistoryEntry {
+  status: OrderStatus;
+  at: string;
+  by: string; // User ID
+}
+
+export interface OrderDTO {
+  id: string;
+  _id?: string;
+  customer: string;
+  restaurant: string;
+  items: OrderItemSnapshot[];
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  deliveryAddress: DeliveryAddressSnapshot;
+  notes?: string;
+  status: OrderStatus;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  statusHistory: StatusHistoryEntry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+
 
 
